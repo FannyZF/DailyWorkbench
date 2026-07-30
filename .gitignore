@@ -1,5 +1,4 @@
 node_modules/
-dist/
 *.db
 server/uploads/originals/
 server/uploads/thumbnails/
