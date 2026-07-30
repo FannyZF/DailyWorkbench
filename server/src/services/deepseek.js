@@ -16,7 +16,10 @@ function getApiKey() {
 
 async function callDeepseek(messages, options = {}) {
   const apiKey = getApiKey();
-  if (!apiKey) return null;
+  if (!apiKey) {
+    console.warn('[Deepseek] API Key 未配置，AI 功能不可用。请在系统设置页面或 .env 文件中配置。');
+    return null;
+  }
 
   const { maxTokens = 200, temperature = 0.3 } = options;
   try {
