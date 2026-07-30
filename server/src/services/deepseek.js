@@ -1,9 +1,23 @@
 const axios = require('axios');
 
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
 const DEEPSEEK_BASE_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com';
 
+function getApiKey() {
+  try {
+    const { getDb } = require('../db/database');
+    const db = getDb();
+    if (db) {
+      const row = db.prepare("SELECT value FROM settings WHERE key = 'deepseekApiKey'").get();
+      if (row && row.value) return row.value;
+    }
+  } catch (e) { /* fallback to env */ }
+  return process.env.DEEPSEEK_API_KEY || '';
+}
+
 async function callDeepseek(messages, options = {}) {
+  const apiKey = getApiKey();
+  if (!apiKey) return null;
+
   const { maxTokens = 200, temperature = 0.3 } = options;
   try {
     const response = await axios.post(
@@ -16,7 +30,7 @@ async function callDeepseek(messages, options = {}) {
       },
       {
         headers: {
-          'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         timeout: 30000,

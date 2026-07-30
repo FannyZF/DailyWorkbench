@@ -5,6 +5,7 @@ module.exports = {
     cwd: '/opt/DailyWorkbench',
     env: {
       NODE_ENV: 'production',
+      PORT: '914',
     },
     log_date_format: 'YYYY-MM-DD HH:mm:ss',
     error_file: '/var/log/daily-workbench-error.log',

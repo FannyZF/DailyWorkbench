@@ -13,10 +13,13 @@ router.get('/', (req, res) => {
 });
 
 router.put('/', authMiddleware, requireAdmin, (req, res) => {
-  const { unitName } = req.body;
+  const { unitName, deepseekApiKey } = req.body;
   const db = getDb();
   if (unitName !== undefined) {
     db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('unitName', unitName);
+  }
+  if (deepseekApiKey !== undefined) {
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('deepseekApiKey', deepseekApiKey);
   }
   res.json({ message: '设置已保存' });
 });
