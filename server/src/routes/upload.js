@@ -166,6 +166,10 @@ router.post('/batch', authMiddleware, async (req, res) => {
 
     db.prepare('UPDATE work_entries SET category = ? WHERE id = ?').run(category, entryId);
 
+    // Debug: verify update was applied
+    const verify = db.prepare('SELECT category FROM work_entries WHERE id = ?').get(entryId);
+    console.log('[Upload] Entry', entryId, 'AI category:', category, 'DB category after UPDATE:', verify?.category);
+
     results.push({ id: entryId, description, category });
   }
 
