@@ -49,11 +49,24 @@ class StatementWrapper {
   run(...params) {
     try {
       this._db.run(this._sql, params || []);
+      const rowsModified = this._db.getRowsModified();
+      const idResult = this._db.exec('SELECT last_insert_rowid()');
+      const lastId = (idResult && idResult.length > 0 && idResult[0].values.length > 0)
+        ? idResult[0].values[0][0] : 0;
+
+      // If last_insert_rowid returns 0 but it's an INSERT, try getting the max id
+      let actualId = lastId;
+      if (lastId === 0 && /^\s*INSERT/i.test(this._sql)) {
+        const maxResult = this._db.exec("SELECT MAX(id) as maxId FROM work_entries");
+        if (maxResult && maxResult.length > 0 && maxResult[0].values.length > 0) {
+          actualId = maxResult[0].values[0][0] || 0;
+        }
+      }
+
       saveDb();
-      const idRow = this._db.exec('SELECT last_insert_rowid()');
       return {
-        lastInsertRowid: (idRow && idRow.length > 0) ? idRow[0].values[0][0] : 0,
-        changes: 0,
+        lastInsertRowid: actualId,
+        changes: rowsModified,
       };
     } catch (e) {
       console.error('[SQL Error] RUN', this._sql, e.message);
