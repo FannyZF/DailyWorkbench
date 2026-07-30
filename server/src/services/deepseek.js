@@ -8,10 +8,15 @@ function getApiKey() {
     const db = getDb();
     if (db) {
       const row = db.prepare("SELECT value FROM settings WHERE key = 'deepseekApiKey'").get();
-      if (row && row.value) return row.value;
+      if (row && row.value) {
+        console.log('[Deepseek] Using API key from DB settings');
+        return row.value;
+      }
     }
-  } catch (e) { /* fallback to env */ }
-  return process.env.DEEPSEEK_API_KEY || '';
+  } catch (e) { console.error('[Deepseek] DB read error:', e.message); }
+  const envKey = process.env.DEEPSEEK_API_KEY || '';
+  if (envKey) console.log('[Deepseek] Using API key from environment variable');
+  return envKey;
 }
 
 async function callDeepseek(messages, options = {}) {
@@ -41,7 +46,13 @@ async function callDeepseek(messages, options = {}) {
     );
     return response.data.choices[0].message.content.trim();
   } catch (err) {
-    console.error('[Deepseek API Error]', err.message);
+    if (err.response) {
+      console.error('[Deepseek API Error]', err.response.status, err.response.data?.error?.message || '');
+    } else if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND') {
+      console.error('[Deepseek API Error] Network error:', err.code, '- cannot reach', DEEPSEEK_BASE_URL);
+    } else {
+      console.error('[Deepseek API Error]', err.message);
+    }
     return null;
   }
 }
