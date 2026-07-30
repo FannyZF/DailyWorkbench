@@ -48,10 +48,7 @@ class StatementWrapper {
 
   run(...params) {
     try {
-      const stmt = this._db.prepare(this._sql);
-      if (params && params.length > 0) stmt.bind(params);
-      stmt.step();
-      stmt.free();
+      this._db.run(this._sql, params || []);
       saveDb();
       const idRow = this._db.exec('SELECT last_insert_rowid()');
       return {
