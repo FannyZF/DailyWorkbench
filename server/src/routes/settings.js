@@ -39,6 +39,10 @@ router.get('/status', (req, res) => {
   const uploadPath = require('path').join(__dirname, '..', '..', 'uploads');
   const uploadsExist = fileSystem.existsSync(uploadPath);
 
+  // Raw DB dump for debugging
+  const entries = db.prepare('SELECT id, description, category, work_date FROM work_entries ORDER BY id DESC LIMIT 5').all();
+  const images = db.prepare('SELECT id, work_entry_id, original_name, stored_path, thumb_path FROM work_images LIMIT 5').all();
+
   res.json({
     apiKeyConfigured,
     apiKeySource: dbKey ? 'DB' : envKey ? 'ENV' : 'none',
@@ -47,6 +51,8 @@ router.get('/status', (req, res) => {
     uploadsDirExists: uploadsExist,
     nodeVersion: process.version,
     platform: process.platform,
+    sampleEntries: entries,
+    sampleImages: images,
   });
 });
 
