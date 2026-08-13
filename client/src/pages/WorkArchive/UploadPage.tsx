@@ -184,7 +184,7 @@ const UploadPage: React.FC = () => {
                 ))}
               </Select>
             </Form.Item>
-            <Form.Item label="相关图片（可选，最多20张）">
+            <Form.Item label="相关图片（可选，最多50张）">
               <Upload
                 multiple
                 listType="picture-card"
@@ -193,7 +193,7 @@ const UploadPage: React.FC = () => {
                 beforeUpload={() => false}
                 accept="image/jpeg,image/png,image/webp"
               >
-                {entry.imageFiles.length < 20 && (
+                {entry.imageFiles.length < 50 && (
                   <div>
                     <PlusOutlined />
                     <div style={{ marginTop: 8 }}>上传</div>

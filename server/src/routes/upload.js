@@ -47,7 +47,7 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
 });
 
-router.post('/', authMiddleware, upload.array('images', 20), async (req, res) => {
+router.post('/', authMiddleware, upload.array('images', 50), async (req, res) => {
   const { description, workDate, category: manualCategory } = req.body;
   const month = req._uploadMonth;
 
@@ -166,17 +166,13 @@ router.post('/batch', authMiddleware, async (req, res) => {
 
     db.prepare('UPDATE work_entries SET category = ? WHERE id = ?').run(category, entryId);
 
-    // Debug: verify update was applied
-    const verify = db.prepare('SELECT category FROM work_entries WHERE id = ?').get(entryId);
-    console.log('[Upload] Entry', entryId, 'AI category:', category, 'DB category after UPDATE:', verify?.category);
-
     results.push({ id: entryId, description, category });
   }
 
   res.status(201).json({ batchId, entries: results });
 });
 
-router.post('/:id/images', authMiddleware, upload.array('images', 20), async (req, res) => {
+router.post('/:id/images', authMiddleware, upload.array('images', 50), async (req, res) => {
   const month = req._uploadMonth;
   const db = getDb();
   const entry = db.prepare('SELECT * FROM work_entries WHERE id = ?').get(req.params.id);
