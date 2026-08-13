@@ -11,13 +11,15 @@ function resolveAbsolute(p) {
 
 function getUploadDir() {
   const configured = process.env.UPLOAD_DIR;
-  if (configured) return resolveAbsolute(configured);
+  // 只接受绝对路径配置，相对路径一律忽略，统一使用 server/uploads
+  if (configured && path.isAbsolute(configured)) return configured;
   return path.join(SERVER_ROOT, 'uploads');
 }
 
 function getDbPath() {
   const configured = process.env.DB_PATH;
-  if (configured) return resolveAbsolute(configured);
+  // 只接受绝对路径配置，相对路径一律忽略，统一使用 server/data/app.db
+  if (configured && path.isAbsolute(configured)) return configured;
   return path.join(SERVER_ROOT, 'data', 'app.db');
 }
 
