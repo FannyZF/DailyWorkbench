@@ -8,10 +8,11 @@ const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('../db/database');
 const { authMiddleware } = require('../middleware/auth');
 const { categorizeEntry } = require('../services/deepseek');
+const { getUploadDir, ensureDir } = require('../config');
 
 const router = express.Router();
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, '..', '..', 'uploads');
+const UPLOAD_DIR = getUploadDir();
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

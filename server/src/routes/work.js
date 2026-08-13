@@ -3,16 +3,18 @@ const fs = require('fs');
 const path = require('path');
 const { getDb } = require('../db/database');
 const { authMiddleware } = require('../middleware/auth');
+const { getUploadDir } = require('../config');
 
 const router = express.Router();
-const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, '..', '..', 'uploads');
+const UPLOAD_DIR = getUploadDir();
 
 function resolveDiskPath(storedPath) {
   if (!storedPath) return '';
   let p = storedPath.replace(/\\/g, '/');
   const idx = p.indexOf('uploads/');
-  if (idx >= 0) p = p.substring(idx);
-  return path.resolve(UPLOAD_DIR, p.replace(/^\/+/, ''));
+  if (idx >= 0) p = p.substring(idx + 8);
+  p = p.replace(/^\/+/, '');
+  return path.resolve(UPLOAD_DIR, p);
 }
 
 function normalizePath(p) {

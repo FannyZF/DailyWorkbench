@@ -5,10 +5,11 @@ const { Document, Packer, Paragraph, TextRun, ImageRun, HeadingLevel, AlignmentT
 const { getDb } = require('../db/database');
 const { authMiddleware } = require('../middleware/auth');
 const { expandContent } = require('../services/deepseek');
+const { getUploadDir } = require('../config');
 
 const router = express.Router();
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, '..', '..', 'uploads');
+const UPLOAD_DIR = getUploadDir();
 
 function normalizePath(p) {
   if (!p) return '';

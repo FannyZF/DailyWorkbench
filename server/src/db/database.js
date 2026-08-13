@@ -1,8 +1,9 @@
 const initSqlJs = require('sql.js');
 const path = require('path');
 const fs = require('fs');
+const { getDbPath, ensureDir } = require('../config');
 
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', '..', 'data', 'app.db');
+const DB_PATH = getDbPath();
 
 let db = null;
 let SQL = null;
