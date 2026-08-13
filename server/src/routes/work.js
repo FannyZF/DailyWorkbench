@@ -112,9 +112,11 @@ router.get('/:id', authMiddleware, (req, res) => {
   res.json({
     ...entry,
     images: images.map(img => ({
-      ...img,
-      stored_path: normalizePath(img.stored_path),
-      thumb_path: normalizePath(img.thumb_path),
+      id: img.id,
+      originalName: img.original_name,
+      storedPath: normalizePath(img.stored_path),
+      thumbPath: normalizePath(img.thumb_path),
+      fileSize: img.file_size,
     })),
   });
 });
