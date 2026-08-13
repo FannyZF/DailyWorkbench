@@ -110,10 +110,14 @@ const BrowsePage: React.FC = () => {
     } catch { message.error('删除失败'); }
   };
 
-  const handleViewDetail = (entry: WorkEntry) => {
+  const handleViewDetail = async (entry: WorkEntry) => {
     setSelectedEntry(entry);
     setEditing(false);
     setDrawerVisible(true);
+    try {
+      const { data } = await api.get(`/work/${entry.id}`);
+      setSelectedEntry(data);
+    } catch { /* keep list data as fallback */ }
   };
 
   const handleEditSave = async () => {
@@ -433,20 +437,23 @@ const BrowsePage: React.FC = () => {
               </Space>
               <Paragraph style={{ whiteSpace: 'pre-wrap', marginBottom: 24 }}>{selectedEntry.description}</Paragraph>
               {selectedEntry.images && selectedEntry.images.length > 0 && (
-                <Image.PreviewGroup>
-                  <Row gutter={[8, 8]}>
-                    {selectedEntry.images.map(img => (
-                      <Col key={img.id} span={12}>
-                        <Image
-                          src={normalizePath(img.storedPath)}
-                          alt={img.originalName}
-                          style={{ width: '100%', maxHeight: 300, objectFit: 'cover' }}
-                          fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
-                        />
-                      </Col>
-                    ))}
-                  </Row>
-                </Image.PreviewGroup>
+                <div style={{ marginTop: 16 }}>
+                  <Text strong style={{ marginBottom: 12, display: 'block' }}>关联图片（{selectedEntry.images.length}张）</Text>
+                  <Image.PreviewGroup>
+                    <Row gutter={[8, 8]}>
+                      {selectedEntry.images.map(img => (
+                        <Col key={img.id} xs={12} sm={8} md={6}>
+                          <Image
+                            src={normalizePath(img.storedPath)}
+                            alt={img.originalName}
+                            style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', borderRadius: 4 }}
+                            fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                          />
+                        </Col>
+                      ))}
+                    </Row>
+                  </Image.PreviewGroup>
+                </div>
               )}
             </>
           )
