@@ -14,6 +14,36 @@ const router = express.Router();
 
 const UPLOAD_DIR = getUploadDir();
 
+const MIME_EXT_MAP = {
+  'image/jpeg': '.jpg',
+  'image/jpg': '.jpg',
+  'image/pjpeg': '.jpg',
+  'image/png': '.png',
+  'image/x-png': '.png',
+  'image/webp': '.webp',
+  'image/bmp': '.bmp',
+  'image/x-bmp': '.bmp',
+  'image/gif': '.gif',
+};
+const ALLOWED_EXT = ['.jpg', '.jpeg', '.png', '.webp', '.bmp', '.gif'];
+
+// multer 默认把 non-ASCII 文件名按 latin1 解码，这里还原为 utf8
+function decodeOriginalName(name) {
+  try {
+    return Buffer.from(name, 'latin1').toString('utf8');
+  } catch (e) {
+    return name;
+  }
+}
+
+function getFileExt(file) {
+  if (MIME_EXT_MAP[file.mimetype]) return MIME_EXT_MAP[file.mimetype];
+  const decoded = decodeOriginalName(file.originalname);
+  const ext = path.extname(decoded).toLowerCase();
+  if (ALLOWED_EXT.includes(ext)) return ext === '.jpeg' ? '.jpg' : ext;
+  return '.jpg';
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const now = new Date();
@@ -26,16 +56,17 @@ const storage = multer.diskStorage({
     cb(null, originalsDir);
   },
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
+    file.originalname = decodeOriginalName(file.originalname);
     const id = uuidv4();
     req._currentFileId = id;
-    cb(null, id + ext);
+    cb(null, id + getFileExt(file));
   },
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowed = ['image/jpeg', 'image/png', 'image/webp'];
-  if (allowed.includes(file.mimetype)) {
+  const mimeOk = !!MIME_EXT_MAP[file.mimetype];
+  const extOk = ALLOWED_EXT.includes(path.extname(decodeOriginalName(file.originalname)).toLowerCase());
+  if (mimeOk || extOk) {
     cb(null, true);
   } else {
     cb(new Error('不支持的文件格式，仅支持 JPG/PNG/WEBP'), false);
@@ -48,7 +79,17 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
 });
 
-router.post('/', authMiddleware, upload.array('images', 50), async (req, res) => {
+// 包装 multer，把文件格式/大小错误转成 JSON 响应，避免通用 500
+function uploadImages(req, res, next) {
+  upload.array('images', 50)(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ error: err.message || '图片上传失败' });
+    }
+    next();
+  });
+}
+
+router.post('/', authMiddleware, uploadImages, async (req, res) => {
   const { description, workDate, category: manualCategory } = req.body;
   const month = req._uploadMonth;
 
@@ -173,7 +214,7 @@ router.post('/batch', authMiddleware, async (req, res) => {
   res.status(201).json({ batchId, entries: results });
 });
 
-router.post('/:id/images', authMiddleware, upload.array('images', 50), async (req, res) => {
+router.post('/:id/images', authMiddleware, uploadImages, async (req, res) => {
   const month = req._uploadMonth;
   const db = getDb();
   const entry = db.prepare('SELECT * FROM work_entries WHERE id = ?').get(req.params.id);

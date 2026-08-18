@@ -72,9 +72,10 @@ const UploadPage: React.FC = () => {
 
       message.success(`提交成功：${data.entries.length} 条已归档并智能分类`);
 
-      for (let i = 0; i < data.entries.length; i++) {
-        const originalEntry = validEntries[i];
-        const createdEntry = data.entries[i];
+      let imageFailCount = 0;
+      for (const originalEntry of validEntries) {
+        const desc = originalEntry.description.trim();
+        const createdEntry = data.entries.find((e: any) => e.description === desc);
         const files = originalEntry.imageFiles.filter(f => f.originFileObj);
         if (files.length > 0 && createdEntry) {
           const formData = new FormData();
@@ -85,8 +86,15 @@ const UploadPage: React.FC = () => {
             await api.post(`/upload/${createdEntry.id}/images`, formData, {
               headers: { 'Content-Type': 'multipart/form-data' },
             });
-          } catch { /* image upload failed silently */ }
+          } catch (e: any) {
+            imageFailCount++;
+            console.error(`[Upload] 图片上传失败(${desc.substring(0, 20)}):`, e?.response?.data?.error || e?.message);
+          }
         }
+      }
+
+      if (imageFailCount > 0) {
+        message.warning(`${imageFailCount} 条内容的图片上传失败，已保存文字内容，可稍后在编辑中重新添加图片`);
       }
 
       setResult({ entries: data.entries });
